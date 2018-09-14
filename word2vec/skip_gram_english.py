@@ -89,8 +89,26 @@ def get_targets(words, idx, window_size=5):
     targets = set(words[start_point: idx] + words[idx+1: end_point+1])
     return list(targets)
 
+
 def get_batches(words, batch_size, window_size=5):
-    pass
+    '''
+    构造一个获取batch的生成器
+    '''
+    n_batches = len(words) // batch_size
+
+    # 仅取full batches
+    words = words[:n_batches*batch_size]
+
+    for idx in range(0, len(words), batch_size):
+        x, y = [], []
+        batch = words[idx: idx+batch_size]
+        for i in range(len(batch)):
+            batch_x = batch[i]
+            batch_y = get_targets(batch, i, window_size)
+            # 由于一个input word会对应多个output word，因此需要长度统一
+            x.extend([batch_x]*len(batch_y))
+            y.extend(batch_y)
+        yield x, y
 
 
 inputs = tf.placholder(tf.int32, shape=[None], name='inputs')
@@ -129,8 +147,8 @@ with train_graph.as_default():
 	similarity = tf.matmul(valid_embedding, tf.transpose(normalized_embedding))
 
 
-epochsepochs  ==  1010  # 迭代轮数# 迭代轮数
- batch_sizebatch_si  = 1000 # batch大小
+epochs  ==  1010  # 迭代轮数# 迭代轮数
+batch_size  = 1000 # batch大小
 window_size = 10 # 窗口大小
 
 with train_graph.as_default():
